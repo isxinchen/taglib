@@ -35,75 +35,97 @@
 
 #include <id3v1tag.h>
 
+#include <attachedpictureframe.h>
 #include <apetag.h>
+#include <fstream>
 
 using namespace std;
 using namespace TagLib;
 
 int main(int argc, char *argv[])
 {
-  // process the command line args
+    // process the command line args
 
 
-  for(int i = 1; i < argc; i++) {
+    for(int i = 1; i < argc; i++) {
 
-    cout << "******************** \"" << argv[i] << "\"********************" << endl;
+        cout << "******************** \"" << argv[i] << "\"********************" << endl;
 
-    MPEG::File f(argv[i]);
+        MPEG::File f(argv[i]);
 
-    ID3v2::Tag *id3v2tag = f.ID3v2Tag();
+        ID3v2::Tag *id3v2tag = f.ID3v2Tag();
 
-    if(id3v2tag) {
+        if(id3v2tag) {
 
-      cout << "ID3v2."
-           << id3v2tag->header()->majorVersion()
-           << "."
-           << id3v2tag->header()->revisionNumber()
-           << ", "
-           << id3v2tag->header()->tagSize()
-           << " bytes in tag"
-           << endl;
+            cout << "ID3v2."
+                << id3v2tag->header()->majorVersion()
+                << "."
+                << id3v2tag->header()->revisionNumber()
+                << ", "
+                << id3v2tag->header()->tagSize()
+                << " bytes in tag"
+                << endl;
 
-      ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
-      for(; it != id3v2tag->frameList().end(); it++)
-        cout << (*it)->frameID() << " - \"" << (*it)->toString() << "\"" << endl;
-    }
-    else
-      cout << "file does not have a valid id3v2 tag" << endl;
+            ID3v2::FrameList::ConstIterator it = id3v2tag->frameList().begin();
+            for(; it != id3v2tag->frameList().end(); it++){
+                cout << (*it)->frameID() << " - \"" << (*it)->toString().to8Bit(true) << "\"" << endl;
+                if((*it)->frameID() == "APIC"){
+                    TagLib::ID3v2::AttachedPictureFrame *apicf = (TagLib::ID3v2::AttachedPictureFrame*)(*it); 
 
-    cout << endl << "ID3v1" << endl;
+                    cout << "AttachedPictureFrame type is:" << apicf->type() << endl;
+                    cout << "AttachedPictureFrame mimetype is:" <<apicf->mimeType() << endl;
+                    cout << "have track image" << endl;
+                    char *fileName = "savefile";
+                    if(apicf->mimeType() == "image/jpeg"){
+                        fileName = "savefile.jpg";
+                    }else if(apicf->mimeType() == "image/png"){
+                        fileName = "savefile.png";
+                    }
+                    ByteVector bytevector = apicf->picture();
+                    ofstream ofile;
+                    ofile.open(fileName);
+                    ofile.write(bytevector.data(),bytevector.size());
+                    ofile.close();
+                }
 
-    ID3v1::Tag *id3v1tag = f.ID3v1Tag();
-
-    if(id3v1tag) {
-      cout << "title   - \"" << id3v1tag->title()   << "\"" << endl;
-      cout << "artist  - \"" << id3v1tag->artist()  << "\"" << endl;
-      cout << "album   - \"" << id3v1tag->album()   << "\"" << endl;
-      cout << "year    - \"" << id3v1tag->year()    << "\"" << endl;
-      cout << "comment - \"" << id3v1tag->comment() << "\"" << endl;
-      cout << "track   - \"" << id3v1tag->track()   << "\"" << endl;
-      cout << "genre   - \"" << id3v1tag->genre()   << "\"" << endl;
-    }
-    else
-      cout << "file does not have a valid id3v1 tag" << endl;
-
-    APE::Tag *ape = f.APETag();
-
-    cout << endl << "APE" << endl;
-
-    if(ape) {
-      for(APE::ItemListMap::ConstIterator it = ape->itemListMap().begin();
-          it != ape->itemListMap().end(); ++it)
-      {
-        if((*it).second.type() != APE::Item::Binary)
-          cout << (*it).first << " - \"" << (*it).second.toString() << "\"" << endl;
+            }
+        }
         else
-          cout << (*it).first << " - Binary data (" << (*it).second.binaryData().size() << " bytes)" << endl;
-      }
-    }
-    else
-      cout << "file does not have a valid APE tag" << endl;
+            cout << "file does not have a valid id3v2 tag" << endl;
 
-    cout << endl;
-  }
+        cout << endl << "ID3v1" << endl;
+
+        ID3v1::Tag *id3v1tag = f.ID3v1Tag();
+
+        if(id3v1tag) {
+            cout << "title   - \"" << id3v1tag->title().to8Bit(true)   << "\"" << endl;
+            cout << "artist  - \"" << id3v1tag->artist().to8Bit(true)  << "\"" << endl;
+            cout << "album   - \"" << id3v1tag->album().to8Bit(true)   << "\"" << endl;
+            cout << "year    - \"" << id3v1tag->year()    << "\"" << endl;
+            cout << "comment - \"" << id3v1tag->comment() << "\"" << endl;
+            cout << "track   - \"" << id3v1tag->track()   << "\"" << endl;
+            cout << "genre   - \"" << id3v1tag->genre().to8Bit(true)   << "\"" << endl;
+        }
+        else
+            cout << "file does not have a valid id3v1 tag" << endl;
+
+        APE::Tag *ape = f.APETag();
+
+        cout << endl << "APE" << endl;
+
+        if(ape) {
+            for(APE::ItemListMap::ConstIterator it = ape->itemListMap().begin();
+                    it != ape->itemListMap().end(); ++it)
+            {
+                if((*it).second.type() != APE::Item::Binary)
+                    cout << (*it).first << " - \"" << (*it).second.toString().to8Bit(true) << "\"" << endl;
+                else
+                    cout << (*it).first << " - Binary data (" << (*it).second.binaryData().size() << " bytes)" << endl;
+            }
+        }
+        else
+            cout << "file does not have a valid APE tag" << endl;
+
+        cout << endl;
+    }
 }

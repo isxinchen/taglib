@@ -45,13 +45,13 @@ int main(int argc, char *argv[])
       TagLib::Tag *tag = f.tag();
 
       cout << "-- TAG (basic) --" << endl;
-      cout << "title   - \"" << tag->title()   << "\"" << endl;
-      cout << "artist  - \"" << tag->artist()  << "\"" << endl;
-      cout << "album   - \"" << tag->album()   << "\"" << endl;
-      cout << "year    - \"" << tag->year()    << "\"" << endl;
-      cout << "comment - \"" << tag->comment() << "\"" << endl;
+      cout << "title   - \"" << tag->title().to8Bit(true)   << "\"" << endl;
+      cout << "artist  - \"" << tag->artist().to8Bit(true)  << "\"" << endl;
+      cout << "album   - \"" << tag->album().to8Bit(true)   << "\"" << endl;
+      cout << "year    - \"" << tag->year()   << "\"" << endl;
+      cout << "comment - \"" << tag->comment().to8Bit(true) << "\"" << endl;
       cout << "track   - \"" << tag->track()   << "\"" << endl;
-      cout << "genre   - \"" << tag->genre()   << "\"" << endl;
+      cout << "genre   - \"" << tag->genre().to8Bit(true)   << "\"" << endl;
 
       TagLib::PropertyMap tags = f.file()->properties();
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
       cout << "-- TAG (properties) --" << endl;
       for(TagLib::PropertyMap::ConstIterator i = tags.begin(); i != tags.end(); ++i) {
         for(TagLib::StringList::ConstIterator j = i->second.begin(); j != i->second.end(); ++j) {
-          cout << left << std::setw(longest) << i->first << " - " << '"' << *j << '"' << endl;
+          cout << left << std::setw(longest) << i->first << " - " << '"' << (*j).to8Bit(true) << '"' << endl;
         }
       }
 
